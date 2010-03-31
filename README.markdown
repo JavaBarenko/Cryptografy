@@ -3,7 +3,7 @@ Cryptografy
 
 _"Data security is easy"_
 
-**Warning**: this lib is on development yet. There is  a lot of javadoc in PT-BR to translate to English, case someone wants to contribute. :D
+**Note**: I'm not a security specialist, so be careful before use this package in critical environments.
 
 What is the goal?
 -----------------
