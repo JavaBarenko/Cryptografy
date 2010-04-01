@@ -13,6 +13,7 @@ Cryptografy is a package that aimed at making easier the use of standard encrypt
 The following encryptions are currently implemented:
 
 Symmetrics:
+
 1.  AES
 2.  Blowfish
 3.  DES
@@ -23,6 +24,7 @@ Symmetrics:
 8.  RC4
 
 Asymmetrics:
+
 1.  RSA 1024 bits
 
 How can I use it?
