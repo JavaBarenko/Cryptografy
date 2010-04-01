@@ -3,7 +3,6 @@ package cryptografy.symmetric;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
-
 import cryptografy.algorithm.SymmetricAlgorithm;
 
 /**
@@ -20,10 +19,12 @@ public class AESCrypt extends SymmetricCrypterImpl {
      * 
      * @param key
      *            - Chave a ser utilizada
+     * @throws ClassNotFoundException
+     * @throws IOException
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public AESCrypt(byte[] key) throws InvalidKeyException, InvalidKeySpecException {
+    public AESCrypt(final byte[] key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 
@@ -32,10 +33,12 @@ public class AESCrypt extends SymmetricCrypterImpl {
      * 
      * @param key
      *            - Chave a ser utilizada
+     * @throws ClassNotFoundException
+     * @throws IOException
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public AESCrypt(String key) throws InvalidKeyException, InvalidKeySpecException, IOException {
+    public AESCrypt(final String key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 

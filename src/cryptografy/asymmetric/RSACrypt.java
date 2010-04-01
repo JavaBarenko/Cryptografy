@@ -2,10 +2,10 @@ package cryptografy.asymmetric;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAKeyGenParameterSpec;
-
 import cryptografy.algorithm.AsymmetricAlgorithm;
 import cryptografy.algorithm.SymmetricAlgorithm;
 
@@ -48,12 +48,47 @@ public class RSACrypt extends AsymmetricCrypterImpl {
      * @throws IOException
      * @throws ClassNotFoundException
      * */
-    public RSACrypt(byte[] serializedPublicKey, byte[] serializedPrivateKey) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
+    public RSACrypt(final KeyPair keys) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
+	super(ALGORITHM, keys);
+    }
+
+    /**
+     * Cria uma nova instancia de RSACrypt, as chaves indicadas e utilizando o padrão de algoritmo simétrico AES de 128
+     * bits na chave.
+     * 
+     * @param serializedPublicKey
+     *            - Chave publica serializada (objeto do tipo PublicKey serializado)
+     * @param serializedPrivateKey
+     *            - Chave privada serializada (objeto do tipo PrivateKey serializado)
+     * @throws InvalidKeyException
+     * @throws InvalidKeySpecException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public RSACrypt(final byte[] serializedPublicKey, final byte[] serializedPrivateKey) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
 	super(ALGORITHM, serializedPublicKey, serializedPrivateKey);
     }
 
+    /**
+     * Cria uma nova instancia de RSACrypt, as chaves indicadas e utilizando o padrão de algoritmo simétrico AES de 128
+     * bits na chave.
+     * 
+     * @param serializedPublicKey
+     *            - Chave publica serializada (objeto do tipo PublicKey serializado)
+     * @param serializedPrivateKey
+     *            - Chave privada serializada (objeto do tipo PrivateKey serializado)
+     * @throws InvalidKeyException
+     * @throws InvalidKeySpecException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public RSACrypt(final byte[] serializedPublicKey) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
+	super(ALGORITHM, serializedPublicKey);
+    }
+
+    @Override
     protected AlgorithmParameterSpec getAlgorithmParameterSpec() {
-	return new RSAKeyGenParameterSpec(algorithm.getBits(), RSAKeyGenParameterSpec.F4);
+	return new RSAKeyGenParameterSpec(this.algorithm.getBits(), RSAKeyGenParameterSpec.F4);
     }
 
 }

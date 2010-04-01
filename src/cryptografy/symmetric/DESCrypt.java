@@ -3,7 +3,6 @@ package cryptografy.symmetric;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
-
 import cryptografy.algorithm.SymmetricAlgorithm;
 
 /**
@@ -23,7 +22,7 @@ public class DESCrypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public DESCrypt(byte[] key) throws InvalidKeyException, InvalidKeySpecException {
+    public DESCrypt(final byte[] key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 
@@ -35,7 +34,7 @@ public class DESCrypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public DESCrypt(String key) throws InvalidKeyException, InvalidKeySpecException, IOException {
+    public DESCrypt(final String key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 

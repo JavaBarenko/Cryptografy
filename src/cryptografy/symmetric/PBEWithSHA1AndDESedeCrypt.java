@@ -6,11 +6,9 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
-
 import cryptografy.algorithm.SymmetricAlgorithm;
 
 /**
@@ -31,7 +29,7 @@ public class PBEWithSHA1AndDESedeCrypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public PBEWithSHA1AndDESedeCrypt(final byte[] key) throws InvalidKeyException, InvalidKeySpecException {
+    public PBEWithSHA1AndDESedeCrypt(final byte[] key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 
@@ -43,7 +41,7 @@ public class PBEWithSHA1AndDESedeCrypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public PBEWithSHA1AndDESedeCrypt(final String key) throws InvalidKeyException, InvalidKeySpecException, IOException {
+    public PBEWithSHA1AndDESedeCrypt(final String key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 

@@ -3,7 +3,6 @@ package cryptografy.symmetric;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
-
 import cryptografy.algorithm.SymmetricAlgorithm;
 
 /**
@@ -20,10 +19,12 @@ public class RC4Crypt extends SymmetricCrypterImpl {
      * 
      * @param key
      *            - Chave a ser utilizada
+     * @throws ClassNotFoundException
+     * @throws IOException
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public RC4Crypt(byte[] key) throws InvalidKeyException, InvalidKeySpecException {
+    public RC4Crypt(final byte[] key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 
@@ -35,7 +36,7 @@ public class RC4Crypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public RC4Crypt(String key) throws InvalidKeyException, InvalidKeySpecException, IOException {
+    public RC4Crypt(final String key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 

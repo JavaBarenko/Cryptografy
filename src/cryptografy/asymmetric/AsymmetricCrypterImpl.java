@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -23,10 +24,9 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import sun.misc.BASE64Decoder;
 import cryptografy.algorithm.AsymmetricAlgorithm;
 import cryptografy.algorithm.SymmetricAlgorithm;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 /**
  * Classe modelo de implementação de criptografias assimétricas. <br>
@@ -35,7 +35,6 @@ import sun.misc.BASE64Encoder;
  * @author Rafael Caetano Pinto
  */
 public abstract class AsymmetricCrypterImpl implements AsymmetricCrypter {
-    private static BASE64Encoder encoder = new BASE64Encoder();
     private static BASE64Decoder decoder = new BASE64Decoder();
     protected Cipher cipher = null;
     protected KeyPair keys = null;
@@ -65,32 +64,31 @@ public abstract class AsymmetricCrypterImpl implements AsymmetricCrypter {
     protected SymmetricAlgorithm encryptKeyAlgorithm = SymmetricAlgorithm.AES;
     protected int encryptKeyAlgorithmKeysize = 128;
 
-    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
-	init(algorithm, null, null, null, null);
+    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm) {
+	init(algorithm, null, null);
     }
 
-    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey, final byte[] serializedPrivateKey) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
-	init(algorithm, serializedPublicKey, serializedPrivateKey, null, null);
+    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm, final KeyPair keys) {
+	init(algorithm, null, null);
     }
 
-    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm, final String serializedPublicKey, final String serializedPrivateKey) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
-	this(algorithm, decoder.decodeBuffer(serializedPublicKey), decoder.decodeBuffer(serializedPrivateKey));
+    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey, final byte[] serializedPrivateKey) throws IOException, ClassNotFoundException {
+	init(algorithm, null, null);
+	loadKeys(serializedPublicKey, serializedPrivateKey);
     }
 
-    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm, final String serializedPublicKey, final String serializedPrivateKey, final SymmetricAlgorithm encryptKeyAlgorithm, final int encryptKeyAlgorithmKeysize)
-		throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
-	init(algorithm, decoder.decodeBuffer(serializedPublicKey), decoder.decodeBuffer(serializedPrivateKey), encryptKeyAlgorithm, encryptKeyAlgorithmKeysize);
+    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey) throws IOException, ClassNotFoundException {
+	init(algorithm, null, null);
+	loadKeys(serializedPublicKey, null);
     }
 
-    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey, final byte[] serializedPrivateKey, final SymmetricAlgorithm encryptKeyAlgorithm, final int encryptKeyAlgorithmKeysize)
-		throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
-	init(algorithm, serializedPublicKey, serializedPrivateKey, encryptKeyAlgorithm, encryptKeyAlgorithmKeysize);
+    public AsymmetricCrypterImpl(final AsymmetricAlgorithm algorithm, final SymmetricAlgorithm encryptKeyAlgorithm, final int encryptKeyAlgorithmKeysize) {
+	init(algorithm, encryptKeyAlgorithm, encryptKeyAlgorithmKeysize);
     }
 
-    private void init(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey, final byte[] serializedPrivateKey, final SymmetricAlgorithm encryptKeyAlgorithm, final Integer encryptKeyAlgorithmKeysize) throws InvalidKeyException,
-		InvalidKeySpecException, IOException, ClassNotFoundException {
+
+    private void init(final AsymmetricAlgorithm algorithm, final SymmetricAlgorithm encryptKeyAlgorithm, final Integer encryptKeyAlgorithmKeysize) {
 	this.algorithm = algorithm;
-	this.keys = generateKeys(serializedPublicKey, serializedPrivateKey);
 
 	if (encryptKeyAlgorithm != null) this.encryptKeyAlgorithm = encryptKeyAlgorithm;
 	if (encryptKeyAlgorithmKeysize != null) this.encryptKeyAlgorithmKeysize = encryptKeyAlgorithmKeysize;
@@ -103,6 +101,10 @@ public abstract class AsymmetricCrypterImpl implements AsymmetricCrypter {
 	} catch (final NoSuchPaddingException e) {
 	    e.printStackTrace();
 	}
+    }
+
+    public AsymmetricAlgorithm getAlgorithm() {
+	return this.algorithm;
     }
 
     protected byte[] generateEncryptSymmetricKey() {
@@ -118,19 +120,19 @@ public abstract class AsymmetricCrypterImpl implements AsymmetricCrypter {
 	}
     }
 
-    public final byte[][] encrypt(final byte[] input) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public final EncryptSet encrypt(final byte[] input) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 	Cipher aescf;
 	try {
 	    aescf = Cipher.getInstance(this.encryptSymmetricMessageKeyAlgorithm);
 	    final IvParameterSpec ivspec = new IvParameterSpec(new byte[16]);
 	    final byte[] symmetricKey = generateEncryptSymmetricKey();
 	    aescf.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(symmetricKey, this.encryptKeyAlgorithm.getAlgorithm()), ivspec);
-	    final byte[] cryptedInput = aescf.doFinal(input);
-	    this.cipher.init(Cipher.ENCRYPT_MODE, this.keys.getPrivate());
-	    final byte[] cryptedKey = this.cipher.doFinal(symmetricKey);
+	    final byte[] encryptedInput = aescf.doFinal(input);
 
-	    final byte[][] result = { cryptedInput, cryptedKey };
-	    return result;
+	    this.cipher.init(Cipher.ENCRYPT_MODE, this.keys.getPrivate());
+	    final byte[] encryptedKey = this.cipher.doFinal(symmetricKey);
+
+	    return new EncryptSet(encryptedInput, encryptedKey, this.keys.getPublic());
 	} catch (final NoSuchAlgorithmException e) {
 	    e.printStackTrace();
 	} catch (final NoSuchPaddingException e) {
@@ -139,14 +141,13 @@ public abstract class AsymmetricCrypterImpl implements AsymmetricCrypter {
 	    e.printStackTrace();
 	}
 	return null;
-
     }
 
-    public final byte[] decrypt(final byte[] input, final byte[] key) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public final byte[] decrypt(final byte[] input, final byte[] encryptedKey) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 	Cipher aescf;
 	try {
 	    this.cipher.init(Cipher.DECRYPT_MODE, this.keys.getPublic());
-	    final byte[] decryptedKey = this.cipher.doFinal(key);
+	    final byte[] decryptedKey = this.cipher.doFinal(encryptedKey);
 	    aescf = Cipher.getInstance(this.encryptSymmetricMessageKeyAlgorithm);
 	    final IvParameterSpec ivspec = new IvParameterSpec(new byte[16]);
 
@@ -163,21 +164,51 @@ public abstract class AsymmetricCrypterImpl implements AsymmetricCrypter {
 
     }
 
-    public final String[] encrypt(final String input) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException {
-	final String[] result = new String[2];
-	final byte[][] encripted = encrypt(input.getBytes());
-	result[0] = encoder.encode(encripted[0]);
-	result[1] = encoder.encode(encripted[1]);
-	return result;
+    public final EncryptSet encrypt(final String input) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException {
+	return encrypt(input.getBytes());
     }
 
-    public final String decrypt(final String input, final String key) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException {
-	final byte[] result = decrypt(decoder.decodeBuffer(input), decoder.decodeBuffer(key));
+    public final String decrypt(final String input, final String encryptedKey) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException {
+	final byte[] result = decrypt(decoder.decodeBuffer(input), decoder.decodeBuffer(encryptedKey));
 	return new String(result);
     }
 
     public final KeyPair getKeys() {
 	return this.keys;
+    }
+
+    public final byte[] getSerializableKeys() {
+	final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+	ObjectOutputStream oos = null;
+	try {
+	    oos = new ObjectOutputStream(byteArrayOutputStream);
+	    final Serializable s = this.keys;
+	    oos.writeObject(s);
+	} catch (final IOException e) {
+	    e.printStackTrace();
+	} finally {
+	    try {
+		oos.close();
+	    } catch (final IOException e) {}
+	}
+	return byteArrayOutputStream.toByteArray();
+    }
+
+    public final byte[] getSerializablePublicKey() {
+	final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+	ObjectOutputStream oos = null;
+	try {
+	    oos = new ObjectOutputStream(byteArrayOutputStream);
+	    final Serializable s = this.keys.getPublic();
+	    oos.writeObject(s);
+	} catch (final IOException e) {
+	    e.printStackTrace();
+	} finally {
+	    try {
+		oos.close();
+	    } catch (final IOException e) {}
+	}
+	return byteArrayOutputStream.toByteArray();
     }
 
     public final byte[] getSerializedPublicKey() {
@@ -214,53 +245,61 @@ public abstract class AsymmetricCrypterImpl implements AsymmetricCrypter {
 	return null;
     }
 
-    public final KeyPair generateKeys() throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
-	return generateKeys(null, null);
+    public final void generateKeys() throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
+	try {
+	    final KeyPairGenerator kpg = KeyPairGenerator.getInstance(this.algorithm.getAlgorithm());
+	    try {
+		kpg.initialize(getAlgorithmParameterSpec());
+	    } catch (final InvalidAlgorithmParameterException e) {
+		e.printStackTrace();
+	    }
+	    this.keys = kpg.generateKeyPair();
+	} catch (final NoSuchAlgorithmException e) {
+	    try {
+		this.keys = KeyPairGenerator.getInstance(this.algorithm.getAlgorithm()).generateKeyPair();
+	    } catch (final NoSuchAlgorithmException e1) {
+		e.printStackTrace();
+	    }
+	}
+    }
+
+    public void loadKeys(final byte[] serializedPublicKey, final byte[] serializedPrivateKey) throws IOException, ClassNotFoundException {
+	final PublicKey pub = (PublicKey) deserializeKey(serializedPublicKey);
+	final PrivateKey priv = (PrivateKey) deserializeKey(serializedPrivateKey);
+	this.keys = new KeyPair(pub, priv);
     }
 
     protected abstract AlgorithmParameterSpec getAlgorithmParameterSpec();
 
-    public final KeyPair generateKeys(final byte[] serializedPublicKey, final byte[] serializedPrivateKey) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException {
+    public final KeyPair deserializeKeys(final byte[] serializedKeys) throws IOException, ClassNotFoundException {
+	ObjectInputStream ois = null;
 	try {
-	    if (serializedPublicKey == null && serializedPrivateKey == null) {
-		try {
-		    final KeyPairGenerator kpg = KeyPairGenerator.getInstance(this.algorithm.getAlgorithm());
-		    try {
-			kpg.initialize(getAlgorithmParameterSpec());
-		    } catch (final InvalidAlgorithmParameterException e) {
-			e.printStackTrace();
-			return null;
-		    }
-		    return kpg.generateKeyPair();
-		} catch (final NoSuchAlgorithmException e) {
-		    return KeyPairGenerator.getInstance(this.algorithm.getAlgorithm()).generateKeyPair();
-		}
-	    }
-
-	    PublicKey pubKey = null;
-	    if (serializedPublicKey != null) {
-		pubKey = (PublicKey) unserializeKey(serializedPublicKey);
-	    }
-
-	    PrivateKey privKey = null;
-	    if (serializedPrivateKey != null) {
-		privKey = (PrivateKey) unserializeKey(serializedPrivateKey);
-	    }
-
-	    return new KeyPair(pubKey, privKey);
-	} catch (final NoSuchAlgorithmException e) {
-	    e.printStackTrace();
-	    return null;
+	    ois = new ObjectInputStream(new ByteArrayInputStream(serializedKeys));
+	    return (KeyPair) ois.readObject();
+	} finally {
+	    ois.close();
 	}
     }
 
-    public final Key unserializeKey(final byte[] key) throws IOException, ClassNotFoundException {
+    public final PublicKey deserializePublicKey(final byte[] serializedKeys) throws IOException, ClassNotFoundException {
+	ObjectInputStream ois = null;
+	try {
+	    ois = new ObjectInputStream(new ByteArrayInputStream(serializedKeys));
+	    return (PublicKey) ois.readObject();
+	} finally {
+	    ois.close();
+	}
+    }
+
+    public final Key deserializeKey(final byte[] serializedKey) throws IOException, ClassNotFoundException {
+	if (serializedKey == null) return null;
 	ObjectInputStream keyOis = null;
 	try {
-	    keyOis = new ObjectInputStream(new ByteArrayInputStream(key));
+	    keyOis = new ObjectInputStream(new ByteArrayInputStream(serializedKey));
 	    return (Key) keyOis.readObject();
 	} finally {
 	    if (keyOis != null) keyOis.close();
 	}
     }
+
 }

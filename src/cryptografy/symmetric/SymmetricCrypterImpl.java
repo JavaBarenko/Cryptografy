@@ -1,6 +1,10 @@
 package cryptografy.symmetric;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -18,9 +22,8 @@ import cryptografy.algorithm.SymmetricAlgorithm;
 /**
  * Classe modelo de implementação de criptografias assimétricas. <br>
  * Essa classe é utilizada como base para qualquer outra especialização de criptografias assimétricas.
- *
+ * 
  * @author Rafael Caetano Pinto
- *
  */
 public abstract class SymmetricCrypterImpl implements SymmetricCrypter {
     private static BASE64Encoder encoder = new BASE64Encoder();
@@ -30,26 +33,21 @@ public abstract class SymmetricCrypterImpl implements SymmetricCrypter {
     protected SymmetricAlgorithm algorithm = null;
 
     public SymmetricCrypterImpl(final SymmetricAlgorithm algorithm) {
-	try {
-	    init(algorithm, null);
-	} catch (final InvalidKeyException e) {
-	    e.printStackTrace();
-	} catch (final InvalidKeySpecException e) {
-	    e.printStackTrace();
-	}
+	init(algorithm);
     }
 
-    public SymmetricCrypterImpl(final SymmetricAlgorithm algorithm, final String key) throws InvalidKeyException, InvalidKeySpecException, IOException {
-	init(algorithm, decoder.decodeBuffer(key));
+    public SymmetricCrypterImpl(final SymmetricAlgorithm algorithm, final String serializedKey) throws IOException, ClassNotFoundException {
+	init(algorithm);
+	loadKey(decoder.decodeBuffer(serializedKey));
     }
 
-    public SymmetricCrypterImpl(final SymmetricAlgorithm algorithm, final byte[] key) throws InvalidKeyException, InvalidKeySpecException {
-	init(algorithm, key);
+    public SymmetricCrypterImpl(final SymmetricAlgorithm algorithm, final byte[] serializedKey) throws IOException, ClassNotFoundException {
+	init(algorithm);
+	loadKey(serializedKey);
     }
 
-    private void init(final SymmetricAlgorithm algorithm, final byte[] key) throws InvalidKeyException, InvalidKeySpecException {
+    private void init(final SymmetricAlgorithm algorithm) {
 	this.algorithm = algorithm;
-	this.key = generateKey(key);
 	try {
 	    this.cipher = Cipher.getInstance(algorithm.getAlgorithm());
 	} catch (final NoSuchAlgorithmException e) {
@@ -88,28 +86,72 @@ public abstract class SymmetricCrypterImpl implements SymmetricCrypter {
 	return this.key;
     }
 
-    public final Key generateKey() throws InvalidKeyException, InvalidKeySpecException {
-	return generateKey(null);
+    public byte[] getSerializedKey() {
+	return serializeKey(this.key);
     }
 
-    public final Key generateKey(final byte[] key) throws InvalidKeyException, InvalidKeySpecException {
+    public final byte[] serializeKey(final Key key) {
+	ByteArrayOutputStream baos = null;
+	ObjectOutputStream oos = null;
 	try {
-	    if (key == null) {
+	    baos = new ByteArrayOutputStream();
+	    oos = new ObjectOutputStream(baos);
+	    oos.writeObject(key);
+	    oos.flush();
+	    return baos.toByteArray();
+	} catch (final IOException e) {
+	    e.printStackTrace();
+	} finally {
+	    if (baos != null) try {
+		baos.close();
+	    } catch (final IOException e) {
+		e.printStackTrace();
+	    }
+	    if (oos != null) try {
+		oos.close();
+	    } catch (final IOException e) {
+		e.printStackTrace();
+	    }
+	}
+	return null;
+    }
+
+    public final Key deserializeKey(final byte[] serializedKey) throws IOException, ClassNotFoundException {
+	if (serializedKey == null) return null;
+	ObjectInputStream keyOis = null;
+	try {
+	    keyOis = new ObjectInputStream(new ByteArrayInputStream(serializedKey));
+	    return (Key) keyOis.readObject();
+	} finally {
+	    if (keyOis != null) keyOis.close();
+	}
+    }
+
+    public final void generateKey() throws InvalidKeyException, InvalidKeySpecException {
+	try {
+	    if (this.key == null) {
 		try {
-		    return KeyGenerator.getInstance(this.algorithm.getAlgorithm()).generateKey();
+		    this.key = KeyGenerator.getInstance(this.algorithm.getAlgorithm()).generateKey();
 		} catch (final NoSuchAlgorithmException e) {
-		    return customizedKeyGenerator();
+		    this.key = customizedKeyGenerator();
 		}
 	    }
-	    return new SecretKeySpec(key, this.algorithm.getAlgorithm());
+	    this.key = new SecretKeySpec(this.key.getEncoded(), this.algorithm.getAlgorithm());
 	} catch (final NoSuchAlgorithmException e) {
 	    e.printStackTrace();
-	    return null;
 	}
+    }
+
+    public final void loadKey(final byte[] serializedKey) throws IOException, ClassNotFoundException {
+	this.key = deserializeKey(serializedKey);
     }
 
     @SuppressWarnings("unused")
     protected Key customizedKeyGenerator() throws NoSuchAlgorithmException {
 	return null;
+    }
+
+    public SymmetricAlgorithm getAlgorithm() {
+	return this.algorithm;
     }
 }

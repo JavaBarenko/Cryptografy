@@ -7,6 +7,7 @@ import java.security.KeyPair;
 import java.security.spec.InvalidKeySpecException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import cryptografy.algorithm.AsymmetricAlgorithm;
 
 /**
  * Representa um encriptador assimétrico.
@@ -29,7 +30,7 @@ public interface AsymmetricCrypter {
      * @throws BadPaddingException
      * @throws IOException
      */
-    String[] encrypt(String input) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException;
+    EncryptSet encrypt(String input) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException;
 
     /**
      * Criptografa o conteudo recebido utilizando o algoritmo especificado na criação da classe. Em seguida retorna um
@@ -43,15 +44,15 @@ public interface AsymmetricCrypter {
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException
      */
-    byte[][] encrypt(byte[] input) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    EncryptSet encrypt(byte[] input) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
     /**
      * Descriptografa o conteudo criptografado recebido utilizando o algoritmo especificado na criação da classe e a
      * chave criptografada da mensagem. Em seguida retorna a String com o conteúdo descriptografado.
-     *
+     * 
      * @param input
      *            - Conteúdo a ser descriptografado
-     * @param key
+     * @param encryptedKey
      *            - Chave da mensagem para descriptografia
      * @return O conteúdo descriptografado
      * @throws InvalidKeyException
@@ -59,26 +60,25 @@ public interface AsymmetricCrypter {
      * @throws BadPaddingException
      * @throws IOException
      */
-    String decrypt(String input, String key) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException;
+    String decrypt(String input, String encryptedKey) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException;
 
     /**
-     * Descriptografa o conteudo criptografado recebido utilizando o algoritmo especificado na criação da classe e a
      * chave criptografada da mensagem. Em seguida retorna a String com o conteúdo descriptografado.
-     *
+     * 
      * @param input
      *            - Conteúdo a ser descriptografado
-     * @param key
+     * @param encryptedKey
      *            - Chave da mensagem para descriptografia
      * @return O conteúdo descriptografado
      * @throws InvalidKeyException
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException
      */
-    byte[] decrypt(byte[] input, byte[] key) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    byte[] decrypt(byte[] input, byte[] encryptedKey) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
     /**
      * Obtém o par de chaves publica e privada utilizados na criptografia
-     *
+     * 
      * @return O par de chaves utilizado
      */
     KeyPair getKeys();
@@ -106,7 +106,7 @@ public interface AsymmetricCrypter {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    KeyPair generateKeys() throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException;
+    void generateKeys() throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException;
 
     /**
      * Desserializa as chaves publicas e privadas convertendo-as em um objeto KeyPair.<br>
@@ -123,7 +123,7 @@ public interface AsymmetricCrypter {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    KeyPair generateKeys(byte[] publicKey, byte[] privateKey) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException;
+    void loadKeys(byte[] serializedPublicKey, byte[] serializedPrivateKey) throws InvalidKeyException, InvalidKeySpecException, IOException, ClassNotFoundException;
 
     /**
      * Desserializa a chave passada.
@@ -134,7 +134,7 @@ public interface AsymmetricCrypter {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    Key unserializeKey(byte[] key) throws IOException, ClassNotFoundException;
+    Key deserializeKey(byte[] serializedKey) throws IOException, ClassNotFoundException;
 
     /**
      * Serializa a chave passada.
@@ -144,4 +144,6 @@ public interface AsymmetricCrypter {
      * @return A chave serializada
      */
     byte[] serializeKey(Key key);
+
+    AsymmetricAlgorithm getAlgorithm();
 }

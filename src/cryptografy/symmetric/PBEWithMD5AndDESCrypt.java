@@ -30,7 +30,7 @@ public class PBEWithMD5AndDESCrypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public PBEWithMD5AndDESCrypt(final byte[] key) throws InvalidKeyException, InvalidKeySpecException {
+    public PBEWithMD5AndDESCrypt(final byte[] key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 
@@ -42,7 +42,7 @@ public class PBEWithMD5AndDESCrypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public PBEWithMD5AndDESCrypt(final String key) throws InvalidKeyException, InvalidKeySpecException, IOException {
+    public PBEWithMD5AndDESCrypt(final String key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 
@@ -57,21 +57,16 @@ public class PBEWithMD5AndDESCrypt extends SymmetricCrypterImpl {
     @Override
     protected Key customizedKeyGenerator() throws NoSuchAlgorithmException {
 	try {
-	    char[] salt = generateSalt();
+	    final char[] salt = new char[SALT_LENGTH];
+	    for (int i = 0; i < SALT_LENGTH; i++) {
+		final int x = (int) ((Math.random() * 94 % 94) + 32);
+		salt[i] = (char) x;
+	    }
 	    return SecretKeyFactory.getInstance(ALGORITHM.getAlgorithm()).generateSecret(new PBEKeySpec(salt));
 	} catch (final InvalidKeySpecException e) {
 	    e.printStackTrace();
 	    return null;
 	}
-    }
-
-    private char[] generateSalt() {
-	char[] salt = new char[SALT_LENGTH];
-	for (int i = 0; i < SALT_LENGTH; i++) {
-	    int x = (int) ((Math.random() * 94 % 94) + 32);
-	    salt[i] = (char) x;
-	}
-	return salt;
     }
 
     @Override

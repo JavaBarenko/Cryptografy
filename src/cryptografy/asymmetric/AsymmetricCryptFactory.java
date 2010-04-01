@@ -2,6 +2,7 @@ package cryptografy.asymmetric;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.security.KeyPair;
 import cryptografy.algorithm.AsymmetricAlgorithm;
 
 /**
@@ -60,8 +61,31 @@ public class AsymmetricCryptFactory {
      * @throws IllegalAccessException
      * @throws InvocationTargetException
      */
-    public AsymmetricCrypter getCryptografy(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey, final byte[] serializedPrivateKey) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException,
+    public AsymmetricCrypter getCryptografy(final AsymmetricAlgorithm algorithm, final KeyPair keys) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException,
     IllegalAccessException, InvocationTargetException {
+	return getCryptInstance(algorithm, keys);
+    }
+
+    /**
+     * Instancia e retorna uma implementação da criptografia assimétrica especificada. <br>
+     * As chaves publica e privada serão geradas automaticamente caso ambas sejam nulas.
+     * 
+     * @param algorithm
+     *            - Algoritmo assimétrico
+     * @param serializedPublicKey
+     *            - Chave publica serializada
+     * @param serializedPrivateKey
+     *            - Chave privada serializada
+     * @return A implementação da criptografia escolhida
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     * @throws IllegalArgumentException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
+    public AsymmetricCrypter getCryptografy(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey, final byte[] serializedPrivateKey) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException,
+		IllegalAccessException, InvocationTargetException {
 	return getCryptInstance(algorithm, serializedPublicKey, serializedPrivateKey);
     }
 
@@ -83,16 +107,23 @@ public class AsymmetricCryptFactory {
      * @throws IllegalAccessException
      * @throws InvocationTargetException
      */
-    public AsymmetricCrypter getCryptografy(final AsymmetricAlgorithm algorithm, final String serializedPublicKey, final String serializedPrivateKey) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException,
-    IllegalAccessException, InvocationTargetException {
-	return getCryptInstance(algorithm, serializedPublicKey, serializedPrivateKey);
+    public AsymmetricCrypter getCryptografy(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException,
+		InvocationTargetException {
+	return getCryptInstance(algorithm, serializedPublicKey, null);
     }
 
-    private AsymmetricCrypter getCryptInstance(final AsymmetricAlgorithm algorithm, final Object publicKey, final Object privateKey) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException,
+    private AsymmetricCrypter getCryptInstance(final AsymmetricAlgorithm algorithm, final KeyPair keys) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException,
     SecurityException, NoSuchMethodException {
 	final Class<AsymmetricCrypter> crypt = getCryptClass(algorithm);
-	final Constructor<AsymmetricCrypter> cryptConstructor = crypt.getDeclaredConstructor(publicKey.getClass(), privateKey.getClass());
-	return cryptConstructor.newInstance(publicKey, privateKey);
+	final Constructor<AsymmetricCrypter> cryptConstructor = crypt.getDeclaredConstructor(KeyPair.class);
+	return cryptConstructor.newInstance(keys);
+    }
+
+    private AsymmetricCrypter getCryptInstance(final AsymmetricAlgorithm algorithm, final byte[] serializedPublicKey, final byte[] serializedPrivateKey) throws IllegalArgumentException, InstantiationException, IllegalAccessException,
+		InvocationTargetException, SecurityException, NoSuchMethodException {
+	final Class<AsymmetricCrypter> crypt = getCryptClass(algorithm);
+	final Constructor<AsymmetricCrypter> cryptConstructor = crypt.getDeclaredConstructor(byte[].class, byte[].class);
+	return cryptConstructor.newInstance(serializedPublicKey, serializedPrivateKey);
     }
 
     @SuppressWarnings("unchecked")

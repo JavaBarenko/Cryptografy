@@ -3,7 +3,6 @@ package cryptografy.symmetric;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
-
 import cryptografy.algorithm.SymmetricAlgorithm;
 
 /**
@@ -23,7 +22,7 @@ public class BlowfishCrypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public BlowfishCrypt(byte[] key) throws InvalidKeyException, InvalidKeySpecException {
+    public BlowfishCrypt(final byte[] key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 
@@ -35,7 +34,7 @@ public class BlowfishCrypt extends SymmetricCrypterImpl {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    public BlowfishCrypt(String key) throws InvalidKeyException, InvalidKeySpecException, IOException {
+    public BlowfishCrypt(final String key) throws IOException, ClassNotFoundException {
 	super(ALGORITHM, key);
     }
 

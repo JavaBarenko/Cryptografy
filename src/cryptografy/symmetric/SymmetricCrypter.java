@@ -6,6 +6,7 @@ import java.security.Key;
 import java.security.spec.InvalidKeySpecException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import cryptografy.algorithm.SymmetricAlgorithm;
 
 /**
  * Representa um encriptador assimétrico.
@@ -72,6 +73,8 @@ public interface SymmetricCrypter {
      */
     Key getKey();
 
+    byte[] getSerializedKey();
+
     /**
      * Gera uma chave para criptografia.
      *
@@ -79,18 +82,13 @@ public interface SymmetricCrypter {
      * @throws InvalidKeyException
      * @throws InvalidKeySpecException
      */
-    Key generateKey() throws InvalidKeyException, InvalidKeySpecException;
+    void generateKey() throws InvalidKeyException, InvalidKeySpecException;
 
-    /**
-     * Converte uma chave em byte[] para um objeto que implementa Key e utiliza o algoritmo especificado.<br>
-     * Caso key seja nulo, esse metodo terá o mesmo efeito de generateKey() sem argumentos.
-     *
-     * @param key
-     *            - A chave a ser convertida
-     *
-     * @return - A chave gerada
-     * @throws InvalidKeyException
-     * @throws InvalidKeySpecException
-     */
-    Key generateKey(byte[] key) throws InvalidKeyException, InvalidKeySpecException;
+    void loadKey(byte[] serializedKey) throws IOException, ClassNotFoundException;
+
+    Key deserializeKey(byte[] serializedKey) throws IOException, ClassNotFoundException;
+
+    byte[] serializeKey(Key key);
+
+    SymmetricAlgorithm getAlgorithm();
 }
