@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="clean_dist_dir" name="Distribuir Cryptografy">
+	<!--ANT 1.7 is required                                        -->
+
+	<target name="pre_javadoc" description="Recria a pasta doc, vazia">
+		<echo taskname="TAREFA ATUAL">Limpando pasta /doc</echo>
+		<delete failonerror="false" includeemptydirs="yes">
+			<fileset dir="doc" includes="**/*" />
+		</delete>
+	</target>
+
+	<target name="javadoc" depends="pre_javadoc" description="Atualiza JavaDoc">
+		<echo taskname="TAREFA ATUAL">Atualizando JavaDoc</echo>
+		<javadoc access="protected" author="true" classpath="lib\junit-4.7.jar" destdir="doc" doctitle="Cryptografy JavaDoc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" overview="index.html" 
+			packagenames="cryptografy.algorithm,cryptografy.asymmetric,cryptografy.symmetric" source="1.5" sourcepath="test;src" splitindex="true" use="true" version="true">
+			<link href="doc/" />
+		</javadoc>
+	</target>
+
+	<target name="pre_create_jar" description="Recria a pasta dist, vazia" depends="javadoc">
+		<echo taskname="TAREFA ATUAL">Limpando pasta /dist</echo>
+		<delete failonerror="false" includeemptydirs="yes">
+			<fileset dir="dist" includes="**/*" />
+		</delete>
+	</target>
+
+	<target name="create_jar" description="Atualiza Package" depends="pre_create_jar">
+		<echo taskname="TAREFA ATUAL">Criando pacote</echo>
+		<jar destfile="dist/Cryptografy.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="cryptografy.AllTests" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="bin" />
+			<zipfileset excludes="META-INF/*.SF" src="lib/junit-4.7.jar" />
+		</jar>
+	</target>
+
+	<target name="run_junit" description="Efetua os testes unitarios" depends="create_jar">
+		<echo taskname="TAREFA ATUAL">Executando testes unitarios (Essa etapa pode ser demorada, aguarde...)</echo>
+		<path id="test.classpath">
+			<pathelement location="dist/Cryptografy.jar" />
+			<fileset dir="dist">
+				<include name="**/*.jar" />
+			</fileset>
+			<fileset dir="lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+		<junit printsummary="yes" fork="yes" haltonfailure="yes">
+			<formatter type="plain" usefile="false" />
+			<classpath refid="test.classpath" />
+			<test name="cryptografy.AllTests" />
+		</junit>
+	</target>
+
+	<target name="create_dist_doc_dir" description="Cria o diretório de documentação da distribuição" depends="run_junit">
+		<echo taskname="TAREFA ATUAL">Criando documentacao da distribuicao</echo>
+		<mkdir dir="dist/doc/" />
+		<copy todir="dist/doc/">
+			<fileset dir="doc" />
+		</copy>
+	</target>
+
+	<target name="create_dist_readme" description="Cria o arquivo de readme" depends="create_dist_doc_dir">
+		<echo taskname="TAREFA ATUAL">Criando arquivo readme</echo>
+		<copy todir="dist/" file="README.markdown" />
+	</target>
+
+	<target name="zip_distribution" depends="create_dist_readme" description="Compacta o pacote da distribuição em um arquivo Zip">
+		<echo taskname="TAREFA ATUAL">Empacotando em Zip</echo>
+		<zip destfile="dist/Cryptografy.zip">
+			<zipfileset file="dist/Cryptografy.jar" />
+			<zipfileset file="dist/README.markdown" />
+			<zipfileset prefix="doc" dir="dist/doc" />
+		</zip>
+	</target>
+
+	<target name="clean_dist_dir" description="Limpa arquivos desnecessários após criação do Zip" depends="zip_distribution">
+		<echo taskname="TAREFA ATUAL">Limpando diretorio de distribuicao (Caso ocorra erro de acesso negado, conclua essa etapa manualmente ou desative a varredura de background do seu antivirus)</echo>
+		<delete includeemptydirs="yes" deleteonexit="yes">
+			<fileset dir="dist" includes="**/*" excludes="**/Cryptografy.zip" />
+		</delete>
+	</target>
+</project>
